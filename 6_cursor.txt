@@ -1,0 +1,73 @@
+SQL> create table employee1(eid int,ename varchar(20),sal float,deptid int);
+
+SQL> insert into employee1 values(1,'omkar',10000,111);
+
+SQL> insert into employee1 values(2,'tanmay',20000,222);
+
+SQL> insert into employee1 values(3,'mohan',30000,333);
+
+SQL> insert into employee1 values(4,'hari',40000,444);
+
+@cursor.sql
+declare
+eid int;
+en varchar(20);
+sal float;
+did int;
+cursor c1 is select * from employee1;
+begin
+open c1;
+loop
+fetch c1 into eid,en,sal,did ;
+exit when c1%notfound;
+dbms_output.put_line(eid||' '||en||' '||sal||' '||did);
+end loop;
+close c1;
+end;
+/
+
+
+
+@cursorpar.sql
+declare
+  eid int;
+  en varchar(20);
+  sal float;
+  deptid int;
+  cursor c1(p_deptid int) is select * from employee1 where deptid = p_deptid;
+begin
+  deptid := &deptid; 
+  open c1(deptid);
+  loop
+    fetch c1 into eid, en, sal, deptid;
+    exit when c1%notfound;
+    dbms_output.put_line(eid || ' ' || en || ' ' || sal || ' ' || deptid);
+  end loop;
+  close c1;
+end;
+/
+
+update
+@Upcursor.sql
+DECLARE
+CURSOR c1 is select * from employee1 for update;
+eid int;
+ename varchar(20);
+sal float;
+did int;
+begin
+OPEN c1;
+LOOP
+fetch c1 into eid,ename,sal,did;
+exit when c1%NOTFOUND;
+update employee1
+set sal = sal + 100
+where current of c1;
+end loop;
+close c1;
+commit;
+for element in (select * from employee1) loop
+DBMS_OUTPUT.PUT_LINE(element.eid || ' ' ||  element.ename || ' ' || element.sal||' ' || element.deptid);
+end loop;
+end;
+/
